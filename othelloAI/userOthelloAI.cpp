@@ -156,7 +156,7 @@ int uciid::userOthelloAI::evaluation(const std::unique_ptr<OthelloGameState>& st
     b = state->blackScore();
   }
 
-  return score = a - b + delta;
+  return a - b + delta;
 
 }
 
