@@ -1,5 +1,6 @@
 #include <iostream>
 #include "avl.hpp"
+#include "math.h"
 
 using namespace std;
 
@@ -78,6 +79,13 @@ void testInsert() {
 	tree.insert(1);
 
 	tree.print();
+	tree.printBFS();
+}
+
+void testLog() {
+	for(int i = 0; i < 9; ++i) {
+		std::cout << i << " : " << (int)log2(i) << std::endl;
+	}
 }
 
 int main() {
@@ -86,5 +94,6 @@ int main() {
 	testNode();
 	testComparator();
 	testInsert();
+	// testLog();
 	return 0;
 }

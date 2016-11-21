@@ -4,16 +4,17 @@
 #include <memory>
 #include <iostream>
 #include <stack>
+#include <queue>
 #include <vector>
+#include <math.h>
 namespace AVL {
 
 template<typename T>
 struct node {
+	std::shared_ptr<node<T>> left;
+	std::shared_ptr<node<T>> right;
 	T value;
 	signed char height;
-	std::unique_ptr<node<T>> left;
-	std::unique_ptr<node<T>> right;
-	
 	node(T v): value(v), height(-1), left(nullptr), right(nullptr){}
 };
 
@@ -21,13 +22,15 @@ template<typename T>
 class BinaryTree {
 
 private:
-	std::unique_ptr<node<T>> root;
+	std::shared_ptr<node<T>> root;
 	bool (*comparator)(T, T);
-	void _insert(std::unique_ptr<node<T>> &, std::unique_ptr<node<T>> &);
-	void print(const std::unique_ptr<node<T>> &) const;
-	signed char height(const std::unique_ptr<node<T>>&) const;
-	void rotateRight(std::unique_ptr<node<T>>&);
-	void rotateLeft(std::unique_ptr<node<T>>&);
+	void _insert(std::shared_ptr<node<T>> &, std::shared_ptr<node<T>> &);
+	void print(const std::shared_ptr<node<T>> &) const;
+	signed char height(const std::shared_ptr<node<T>>&) const;
+	void rotateRight(std::shared_ptr<node<T>>&);
+	void rotateLeft(std::shared_ptr<node<T>>&);
+
+	void printBFS(std::shared_ptr<node<T>> &);
 
 public:
 
@@ -63,6 +66,7 @@ public:
 	void setComparator(bool (*f)(T,T));
 	void insert(T);
 	void print() const;
+	void printBFS();
 };
 
 template<typename T>
@@ -73,10 +77,10 @@ BinaryTree<T>::BinaryTree() {
 
 // private functions
 template<typename T>
-void BinaryTree<T>::_insert(std::unique_ptr<node<T>> &tree, std::unique_ptr<node<T>> &node) {
+void BinaryTree<T>::_insert(std::shared_ptr<node<T>> &tree, std::shared_ptr<node<T>> &node) {
 
 	if (tree == nullptr) {
-		tree = std::move(node);
+		tree = node;
 		return;
 	}
 
@@ -88,7 +92,6 @@ void BinaryTree<T>::_insert(std::unique_ptr<node<T>> &tree, std::unique_ptr<node
 	}
 
 	signed char delta = height(tree->right) - height(tree->left);
-	std::cout << "DELTA [" << static_cast<int>(delta) << "]" << std::endl;
 	if (delta == 2) {
 		rotateLeft(tree);
 	} else if (delta == -2) {
@@ -99,14 +102,14 @@ void BinaryTree<T>::_insert(std::unique_ptr<node<T>> &tree, std::unique_ptr<node
 }
 
 template<typename T>
-void BinaryTree<T>::print(const std::unique_ptr<node<T>> &node) const{
+void BinaryTree<T>::print(const std::shared_ptr<node<T>> &node) const{
 	if(node == nullptr)
 		return;
 
 	if (node->left)
 		print(node->left);
 
-	std::cout << "[" << node->value << " " << &node << " ]";
+	std::cout << "[" << node->value << " ]";
 
 	if (node->right)
 		print(node->right);
@@ -114,7 +117,7 @@ void BinaryTree<T>::print(const std::unique_ptr<node<T>> &node) const{
 }
 
 template <typename T>
-signed char BinaryTree<T>::height(const std::unique_ptr<node<T>>& node) const {
+signed char BinaryTree<T>::height(const std::shared_ptr<node<T>>& node) const {
 	if (! node)
 		return -1;
 
@@ -122,29 +125,68 @@ signed char BinaryTree<T>::height(const std::unique_ptr<node<T>>& node) const {
 }
 
 template <typename T>
-void BinaryTree<T>::rotateRight(std::unique_ptr<node<T>>& node) {
-	std::unique_ptr<AVL::node<T>> temp;
-	temp = std::move(node->left);
-	node->left = std::move(temp->right);
-	temp->right = std::move(node);
-	node = std::move(temp);
+void BinaryTree<T>::rotateRight(std::shared_ptr<node<T>>& node) {
+	std::shared_ptr<AVL::node<T>> temp;
+	temp = node->left;
+	node->left = temp->right;
+	temp->right = node;
+	node = temp;
 }
 
 template <typename T>
-void BinaryTree<T>::rotateLeft(std::unique_ptr<node<T>>& node) {
-	std::unique_ptr<AVL::node<T>> temp;
-	temp = std::move(node->right);
-	node->right = std::move(temp->left);
-	temp->left = std::move(node);
-	node = std::move(temp);
+void BinaryTree<T>::rotateLeft(std::shared_ptr<node<T>>& node) {
+	std::shared_ptr<AVL::node<T>> temp;
+	temp = node->right;
+	node->right = temp->left;
+	temp->left = node;
+	node = temp;
 }
 
+template <typename T>
+void BinaryTree<T>::printBFS(std::shared_ptr<node<T>> &current) {
+	std::queue< std::shared_ptr<node<T>> > queue;
+	std::shared_ptr<node<T>> currentNode;
+	std::shared_ptr<node<T>> nullNode(new AVL::node<T>(0));
 
+	queue.push(current);
+	int i = 1;
+	int c = 0;
+	while(!queue.empty()) {
+
+		if (c != (int)log2(i)) {
+			std::cout << std::endl;
+		}
+
+		if (queue.front()->value != 0) {
+			if (queue.front()->left) {
+				queue.push(queue.front()->left);
+			} else {
+				queue.push(nullNode);
+			}
+			if (queue.front()->right) {
+				queue.push(queue.front()->right);
+			} else {
+				queue.push(nullNode);
+			}
+		}
+
+		std::cout << " " << queue.front()->value;
+
+		if (c != (int)log2(i)) {
+			c = (int)log2(i);
+		}
+
+		i++;
+
+		queue.pop();
+	}
+
+}
 
 // PUBLIC
 // 
 
-template<typename T>
+template <typename T>
 void BinaryTree<T>::setComparator(bool (*f)(T,T)) {
 	comparator = f;
 }
@@ -154,10 +196,9 @@ bool BinaryTree<T>::compare(T a, T b) {
 	return comparator(a, b);
 }
 
-template<typename T>
+template <typename T>
 void BinaryTree<T>::insert(const T value) {
-	std::unique_ptr<node<T>> node(new AVL::node<T>(value));
-	std::cout << "node address:" << &node << std::endl;
+	std::shared_ptr<node<T>> node(new AVL::node<T>(value));
 	_insert(root, node);
 }
 
@@ -165,6 +206,11 @@ template <typename T>
 void BinaryTree<T>::print() const {
 	print(root);
 	std::cout << std::endl;
+}
+
+template <typename T>
+void BinaryTree<T>::printBFS() {
+	printBFS(root);
 }
 
 } // end namespace AVL
