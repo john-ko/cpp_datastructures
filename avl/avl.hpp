@@ -75,7 +75,10 @@ BinaryTree<T>::BinaryTree() {
 	comparator = nullptr;
 }
 
-// private functions
+///////////////////////
+// PRIVATE FUNCTIONS //
+///////////////////////
+
 template<typename T>
 void BinaryTree<T>::_insert(std::shared_ptr<node<T>> &tree, std::shared_ptr<node<T>> &node) {
 
@@ -183,8 +186,13 @@ void BinaryTree<T>::printBFS(std::shared_ptr<node<T>> &current) {
 
 }
 
-// PUBLIC
-// 
+
+
+
+
+////////////////////
+// PUBLIC METHODS // 
+////////////////////
 
 template <typename T>
 void BinaryTree<T>::setComparator(bool (*f)(T,T)) {
